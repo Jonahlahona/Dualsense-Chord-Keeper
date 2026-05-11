@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +18,7 @@
     </script>
     <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
 </head>
+
 <body class="bg-slate-950 text-slate-300">
     <div id="root"></div>
 
@@ -27,13 +29,13 @@
 
         const MoveIcon = () => (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="5 9 2 12 5 15"/>
-                <polyline points="9 5 12 2 15 5"/>
-                <polyline points="15 19 12 22 9 19"/>
-                <polyline points="19 9 22 12 19 15"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <line x1="12" y1="2" x2="12" y2="22"/>
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="5 9 2 12 5 15" />
+                <polyline points="9 5 12 2 15 5" />
+                <polyline points="15 19 12 22 9 19" />
+                <polyline points="19 9 22 12 19 15" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <line x1="12" y1="2" x2="12" y2="22" />
             </svg>
         );
 
@@ -46,10 +48,10 @@
         const ButtonSVG = ({ type }) => {
             const cls = "w-[18px] h-[18px]";
             switch (type) {
-                case 'Triangle': return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5"><polygon points="12,4 20,18 4,18" strokeLinejoin="round"/></svg>;
-                case 'Circle':   return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5"><circle cx="12" cy="12" r="8"/></svg>;
-                case 'Cross':    return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>;
-                case 'Square':   return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#ec4899" strokeWidth="2.5"><rect x="6" y="6" width="12" height="12" rx="2" strokeLinejoin="round"/></svg>;
+                case 'Triangle': return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5"><polygon points="12,4 20,18 4,18" strokeLinejoin="round" /></svg>;
+                case 'Circle': return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5"><circle cx="12" cy="12" r="8" /></svg>;
+                case 'Cross': return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round"><path d="M7 7l10 10M17 7L7 17" /></svg>;
+                case 'Square': return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#ec4899" strokeWidth="2.5"><rect x="6" y="6" width="12" height="12" rx="2" strokeLinejoin="round" /></svg>;
                 default: return null;
             }
         };
@@ -57,12 +59,12 @@
         const getIcon = (name, className = "") => {
             const props = { size: 18, className };
             switch (name) {
-                case 'Monitor':    return <Monitor    {...props} />;
+                case 'Monitor': return <Monitor    {...props} />;
                 case 'Smartphone': return <Smartphone {...props} />;
-                case 'Laptop':     return <Laptop     {...props} />;
-                case 'Tablet':     return <Tablet     {...props} />;
-                case 'Tv':         return <Tv         {...props} />;
-                default:           return <Monitor    {...props} />;
+                case 'Laptop': return <Laptop     {...props} />;
+                case 'Tablet': return <Tablet     {...props} />;
+                case 'Tv': return <Tv         {...props} />;
+                default: return <Monitor    {...props} />;
             }
         };
 
@@ -92,7 +94,7 @@
         };
 
         const BUTTONS = ['Triangle', 'Circle', 'Cross', 'Square'];
-        const ICONS   = ['Monitor', 'Smartphone', 'Laptop', 'Tablet', 'Tv'];
+        const ICONS = ['Monitor', 'Smartphone', 'Laptop', 'Tablet', 'Tv'];
 
         const DEFAULT_PROFILE = {
             id: 'default',
@@ -103,9 +105,10 @@
         };
 
         function App() {
-            const [profileList, setProfileList]     = useState([DEFAULT_PROFILE]);
+            const [profileList, setProfileList] = useState([DEFAULT_PROFILE]);
             const [activeProfileId, setActiveProfileId] = useState('default');
             const [showNotification, setShowNotification] = useState(false);
+            const [startWithWindows, setStartWithWindows] = useState(false);
             const [settings, setSettings] = useState({
                 triggerType: 'single',
                 triggerButton1: 'PS',
@@ -129,10 +132,19 @@
                         if (json) {
                             try {
                                 const data = JSON.parse(json);
-                                if (data.profileList?.length) setProfileList(data.profileList);
-                                if (data.activeProfileId)    setActiveProfileId(data.activeProfileId);
-                                if (data.settings)           setSettings(data.settings);
-                            } catch(e) { console.error('load_config parse error', e); }
+                                if (data.profileList?.length) {
+                                    setProfileList(data.profileList.map(p => ({
+                                        ...p,
+                                        offsetX: p.offsetX ?? 0,
+                                        offsetY: p.offsetY ?? 0
+                                    })));
+                                }
+                                if (data.activeProfileId) setActiveProfileId(data.activeProfileId);
+                                if (data.settings) setSettings(data.settings);
+                            } catch (e) { console.error('load_config parse error', e); }
+                        }
+                        if (window.pywebview?.api?.get_startup_status) {
+                            window.pywebview.api.get_startup_status().then(status => setStartWithWindows(status));
                         }
                         initialized.current = true;
                     });
@@ -187,7 +199,7 @@
             };
 
             const addProfile = () => {
-                const np = { id: String(Date.now()), name: 'New Profile', chords: [] };
+                const np = { id: String(Date.now()), name: 'New Profile', chords: [], offsetX: 0, offsetY: 0 };
                 const nl = [...profileList, np];
                 setProfileList(nl);
                 setActiveProfileId(np.id);
@@ -209,14 +221,16 @@
                 save(nl, newActiveId);
             };
 
-            // ── Chord management (within active profile) ────────────────────
-            const updateChords = (newChords) => {
-                const nl = profileList.map(p =>
-                    p.id === activeProfileId ? { ...p, chords: newChords } : p
+            const updateActiveProfile = (updates) => {
+                const nl = profileList.map(p => 
+                    String(p.id) === String(activeProfileId) ? { ...p, ...updates } : p
                 );
                 setProfileList(nl);
                 save(nl, activeProfileId);
             };
+
+            // ── Chord management (within active profile) ────────────────────
+            const updateChords = (newChords) => updateActiveProfile({ chords: newChords });
 
             const updateChord = (id, field, value) =>
                 updateChords(chords.map(c => c.id === id ? { ...c, [field]: value } : c));
@@ -237,8 +251,8 @@
                         <header className="flex flex-col md:flex-row justify-between items-start md:items-center py-8 mb-8 border-b border-slate-800">
                             <div>
                                 <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                                    <Gamepad2 className="text-blue-500" size={32} />DualSense Chord Keeper
-                                    <span className="text-xs font-normal text-slate-600 bg-slate-800/50 px-2 py-0.5 rounded-full border border-slate-700/50 ml-2">v1.3.6</span>
+                                    <img src="DualsenseChordKeeper.png" className="w-8 h-8 object-contain drop-shadow-md" alt="Logo" />DualSense Chord Keeper
+                                    <span className="text-xs font-normal text-slate-600 bg-slate-800/50 px-2 py-0.5 rounded-full border border-slate-700/50 ml-2">v1.5.8</span>
                                 </h1>
                                 <p className="text-slate-400 mt-2">Configure your controller's Bluetooth switching shortcuts.</p>
                             </div>
@@ -255,7 +269,7 @@
                         {/* Global Settings */}
                         <div className="mb-8 bg-slate-900/50 border border-slate-800 rounded-xl p-5 shadow-sm">
                             <h2 className="text-lg font-semibold text-slate-100 mb-4">Global Settings</h2>
-                            
+
                             <div className="space-y-5">
                                 {/* Shortcut Type & Buttons */}
                                 <div className="flex flex-col sm:flex-row gap-4">
@@ -270,7 +284,7 @@
                                             <option value="chord">Button Combo (Chord)</option>
                                         </select>
                                     </div>
-                                    
+
                                     <div className="flex-1 flex items-end gap-2">
                                         {settings.triggerType === 'chord' && (
                                             <>
@@ -293,43 +307,108 @@
                                         </select>
                                     </div>
                                 </div>
-                                
-                                {/* Duration Slider */}
+
+                                {/* Notification Duration */}
                                 <div>
                                     <div className="flex justify-between mb-1.5">
                                         <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Notification Duration</label>
                                         <span className="text-xs font-semibold text-blue-400">{settings.duration} seconds</span>
                                     </div>
-                                    <input 
-                                        type="range" 
+                                    <input
+                                        type="range"
                                         min="2" max="15" step="1"
                                         value={settings.duration}
                                         onChange={e => updateSettings({ duration: parseInt(e.target.value) })}
                                         className="w-full accent-blue-500"
                                     />
                                 </div>
-                                
+
                                 {/* Notification Position */}
                                 <div>
                                     <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Notification Position</label>
-                                    <div className="grid grid-cols-2 gap-1.5 w-32">
-                                        {[['top-left','TL'],['top-right','TR'],['bottom-left','BL'],['bottom-right','BR']].map(([corner, label]) => (
-                                            <button
-                                                key={corner}
-                                                onClick={() => {
-                                                    updateSettings({ notificationCorner: corner });
-                                                    window.pywebview?.api?.set_notification_corner(corner);
-                                                }}
-                                                className={`py-2 rounded text-xs font-semibold transition-all ${
-                                                    settings.notificationCorner === corner
+                                    <div className="flex items-start gap-8">
+                                        <div className="grid grid-cols-2 gap-1.5 w-32 shrink-0">
+                                            {[['top-left', 'TL'], ['top-right', 'TR'], ['bottom-left', 'BL'], ['bottom-right', 'BR']].map(([corner, label]) => (
+                                                <button
+                                                    key={corner}
+                                                    onClick={() => {
+                                                        updateSettings({ notificationCorner: corner });
+                                                        window.pywebview?.api?.set_notification_corner(corner);
+                                                    }}
+                                                    className={`py-2 rounded text-xs font-semibold transition-all ${settings.notificationCorner === corner
                                                         ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                                                         : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300 border border-slate-700'
-                                                }`}
-                                            >
-                                                {label}
-                                            </button>
-                                        ))}
+                                                        }`}
+                                                >
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        <div className="flex-1 space-y-4 pt-1">
+                                            {/* Horizontal Offset */}
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Horizontal</span>
+                                                    <input 
+                                                        type="number" 
+                                                        value={activeProfile.offsetX ?? 0}
+                                                        onChange={(e) => updateActiveProfile({ offsetX: parseInt(e.target.value) || 0 })}
+                                                        className="bg-slate-800/30 hover:bg-slate-800 border border-transparent hover:border-slate-700 rounded px-2 py-0.5 text-blue-400 font-mono text-[11px] text-right focus:outline-none focus:border-blue-500 focus:bg-slate-800 w-16 transition-all [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none m-0"
+                                                        style={{ MozAppearance: 'textfield' }}
+                                                    />
+                                                </div>
+                                                <input 
+                                                    type="range" min="-1000" max="1000" step="1" 
+                                                    value={activeProfile.offsetX ?? 0}
+                                                    onChange={(e) => updateActiveProfile({ offsetX: parseInt(e.target.value) })}
+                                                    className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                                />
+                                            </div>
+
+                                            {/* Vertical Offset */}
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Vertical</span>
+                                                    <input 
+                                                        type="number" 
+                                                        value={activeProfile.offsetY ?? 0}
+                                                        onChange={(e) => updateActiveProfile({ offsetY: parseInt(e.target.value) || 0 })}
+                                                        className="bg-slate-800/30 hover:bg-slate-800 border border-transparent hover:border-slate-700 rounded px-2 py-0.5 text-blue-400 font-mono text-[11px] text-right focus:outline-none focus:border-blue-500 focus:bg-slate-800 w-16 transition-all [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none m-0"
+                                                        style={{ MozAppearance: 'textfield' }}
+                                                    />
+                                                </div>
+                                                <input 
+                                                    type="range" min="-1000" max="1000" step="1" 
+                                                    value={activeProfile.offsetY ?? 0}
+                                                    onChange={(e) => updateActiveProfile({ offsetY: parseInt(e.target.value) })}
+                                                    className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+
+
+                                {/* Start with Windows Toggle */}
+                                <div className="mt-4 pt-4 border-t border-slate-800">
+                                    <label className="flex items-center cursor-pointer w-max">
+                                        <div className="relative">
+                                            <input 
+                                                type="checkbox" 
+                                                className="sr-only" 
+                                                checked={startWithWindows}
+                                                onChange={(e) => {
+                                                    const val = e.target.checked;
+                                                    setStartWithWindows(val);
+                                                    window.pywebview?.api?.toggle_startup(val);
+                                                }}
+                                            />
+                                            <div className={`block w-10 h-6 rounded-full transition-colors ${startWithWindows ? 'bg-blue-600' : 'bg-slate-700'}`}></div>
+                                            <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${startWithWindows ? 'translate-x-4' : ''}`}></div>
+                                        </div>
+                                        <div className="ml-3 text-sm font-medium text-slate-300">Start with Windows (System Tray)</div>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -347,12 +426,12 @@
                                         const mac = device.mac;
                                         const name = settings.controllerNames?.[mac] || "DualSense Controller";
                                         const assignedProfile = settings.controllerMappings?.[mac] || activeProfileId;
-                                        
+
                                         return (
                                             <div key={mac} className="bg-slate-900/80 border border-slate-700 rounded-xl p-5 flex flex-col items-center shadow-lg transition-all hover:border-slate-600">
                                                 {/* Custom Name */}
-                                                <input 
-                                                    type="text" 
+                                                <input
+                                                    type="text"
                                                     value={name}
                                                     onChange={e => {
                                                         const names = { ...(settings.controllerNames || {}), [mac]: e.target.value };
@@ -362,19 +441,19 @@
                                                     style={{ borderBottomWidth: '2px' }}
                                                     placeholder="Controller Name"
                                                 />
-                                                
+
                                                 {/* Controller Icon */}
                                                 <div className="text-green-500 mb-4">
                                                     <Gamepad2 size={64} strokeWidth={1.5} />
                                                 </div>
-                                                
+
                                                 {/* MAC Address (dim unless hovered) */}
                                                 <div className="text-xs text-slate-600 hover:text-slate-400 transition-colors mb-4 cursor-default font-mono">
                                                     {mac}
                                                 </div>
-                                                
+
                                                 {/* Profile Dropdown */}
-                                                <select 
+                                                <select
                                                     value={assignedProfile}
                                                     onChange={e => {
                                                         const mappings = { ...(settings.controllerMappings || {}), [mac]: e.target.value };
@@ -409,20 +488,18 @@
                                     <div
                                         key={profile.id}
                                         onClick={() => selectProfile(profile.id)}
-                                        className={`flex items-center gap-2 rounded-lg px-3 py-1.5 border cursor-pointer transition-colors ${
-                                            profile.id === activeProfileId
-                                                ? 'bg-blue-600/20 border-blue-500'
-                                                : 'bg-slate-900 border-slate-800 hover:border-slate-700'
-                                        }`}
+                                        className={`flex items-center gap-2 rounded-lg px-3 py-1.5 border cursor-pointer transition-colors ${profile.id === activeProfileId
+                                            ? 'bg-blue-600/20 border-blue-500'
+                                            : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                                            }`}
                                     >
                                         <input
                                             type="text"
                                             value={profile.name}
                                             onChange={e => renameProfile(profile.id, e.target.value)}
                                             onClick={e => e.stopPropagation()}
-                                            className={`bg-transparent text-sm font-medium outline-none w-28 min-w-0 ${
-                                                profile.id === activeProfileId ? 'text-blue-300' : 'text-slate-400'
-                                            }`}
+                                            className={`bg-transparent text-sm font-medium outline-none w-28 min-w-0 ${profile.id === activeProfileId ? 'text-blue-300' : 'text-slate-400'
+                                                }`}
                                         />
                                         {profileList.length > 1 && (
                                             <button
@@ -531,4 +608,5 @@
         createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
+
 </html>

@@ -12,47 +12,32 @@
                     "useDeviceIcon": false
                 },
                 {
-                    "id": 1778459478455,
+                    "id": 1778470113469,
                     "button2": "Cross",
                     "deviceName": "New Device",
                     "iconType": "Tablet",
                     "useDeviceIcon": false
                 },
                 {
-                    "id": 1778459478853,
+                    "id": 1778470113593,
                     "button2": "Cross",
                     "deviceName": "New Device",
                     "iconType": "Tablet",
                     "useDeviceIcon": false
                 }
-            ]
-        },
-        {
-            "id": "1778459481860",
-            "name": "New Profile",
-            "chords": [
-                {
-                    "id": 1778459485303,
-                    "button2": "Cross",
-                    "deviceName": "New Device",
-                    "iconType": "Tablet",
-                    "useDeviceIcon": false
-                },
-                {
-                    "id": 1778459485513,
-                    "button2": "Cross",
-                    "deviceName": "New Device",
-                    "iconType": "Tablet",
-                    "useDeviceIcon": false
-                }
-            ]
+            ],
+            "offsetX": -298,
+            "offsetY": -136
         }
     ],
     "activeProfileId": "default",
     "settings": {
-        "notificationCorner": "top-left",
-        "duration": 2,
-        "offsetX": -2,
-        "offsetY": 1
+        "triggerType": "single",
+        "triggerButton1": "PS",
+        "triggerButton2": "Mute",
+        "duration": 8,
+        "notificationCorner": "bottom-right",
+        "controllerMappings": {},
+        "controllerNames": {}
     }
 }

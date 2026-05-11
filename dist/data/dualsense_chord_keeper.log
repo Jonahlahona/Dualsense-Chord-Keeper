@@ -1,0 +1,19 @@
+2026-05-10 22:27:29,538  INFO      --- Booting DualSense Chord Keeper 1.5.8 ---
+2026-05-10 22:27:29,606  INFO      Core libraries imported successfully
+2026-05-10 22:27:29,608  INFO      [bottom-right] WA(0,0,1920,1140) Window(340x200) UserOff(0,0) -> Final(1570,930)
+2026-05-10 22:27:30,989  INFO      [bottom-right] WA(0,0,1920,1140) Window(340x200) UserOff(0,0) -> Final(1570,930)
+2026-05-10 22:27:46,053  INFO      Connected new DualSense controller: 24:A6:FA:C5:FA:E1
+2026-05-10 22:27:50,660  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(0,0) -> Final(1503,927)
+2026-05-10 22:27:52,320  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(0,0) -> Final(1503,927)
+2026-05-10 22:27:54,657  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(0,0) -> Final(1503,927)
+2026-05-10 22:27:56,274  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(0,0) -> Final(1503,927)
+2026-05-10 22:27:58,832  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-338,0) -> Final(1165,927)
+2026-05-10 22:27:59,800  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-338,0) -> Final(1165,927)
+2026-05-10 22:28:00,602  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-338,0) -> Final(1165,927)
+2026-05-10 22:28:03,595  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-287,0) -> Final(1216,927)
+2026-05-10 22:28:10,047  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-298,0) -> Final(1205,927)
+2026-05-10 22:28:14,043  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-298,-176) -> Final(1205,751)
+2026-05-10 22:28:17,620  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-298,-147) -> Final(1205,780)
+2026-05-10 22:28:18,253  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-298,-147) -> Final(1205,780)
+2026-05-10 22:28:20,786  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-298,-136) -> Final(1205,791)
+2026-05-10 22:28:24,972  INFO      [bottom-right] WA(0,0,1920,1140) Window(407x203) UserOff(-298,-136) -> Final(1205,791)
