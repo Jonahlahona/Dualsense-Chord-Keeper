@@ -4,7 +4,7 @@ a = Analysis(
     ['src/main.py'],
     pathex=[],
     binaries=[('assets/hidapi.dll', '.')],
-    datas=[('src/ui/*', 'ui')],
+    datas=[('src/ui/', 'ui/')],
     hiddenimports=['clr'],
     hookspath=[],
     hooksconfig={},

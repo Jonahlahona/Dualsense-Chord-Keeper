@@ -1,6 +1,6 @@
 import os, sys, logging, traceback, threading, winreg, winreg
 
-VERSION = "1.5.8"
+VERSION = "1.5.9"
 
 def get_data_dir():
     if getattr(sys, 'frozen', False):
