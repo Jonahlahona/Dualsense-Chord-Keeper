@@ -16,7 +16,7 @@
     ],
     "activeProfileId": "default",
     "settings": {
-        "notificationCorner": "bottom-right",
+        "notificationCorner": "top-right",
         "duration": 15
     }
 }
