@@ -1,0 +1,5 @@
+pywebview
+Pillow
+pystray
+hidapi
+pydualsense
