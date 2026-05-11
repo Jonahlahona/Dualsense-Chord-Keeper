@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DualSense Chord Keeper - Overlay</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #0f172a;
+    overflow: hidden;
+    user-select: none;
+    -webkit-app-region: no-drag;
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
+  body.fading-out {
+    opacity: 0;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  #face { flex: 1; display: block; }
+  .accent {
+    height: 4px;
+    flex-shrink: 0;
+    background: linear-gradient(to right, #2563eb, #6366f1, #9333ea);
+  }
+
+  /* ── Reposition mode overlay ────────────────────── */
+  #repo-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    -webkit-app-region: drag;
+    cursor: move;
+    background: rgba(15, 23, 42, 0.96);
+    align-items: center;
+    justify-content: center;
+  }
+  #repo-overlay.active { display: flex; }
+  #repo-inner {
+    -webkit-app-region: no-drag;
+    text-align: center;
+  }
+  #repo-inner p {
+    color: #94a3b8;
+    font-size: 13px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <svg id="face" width="100%" height="100%"
+       viewBox="0 0 340 196"
+       xmlns="http://www.w3.org/2000/svg"></svg>
+
+  <!-- Shown only during reposition mode -->
+  <div id="repo-overlay">
+    <div id="repo-inner">
+      <p>Drag to reposition,<br>then click Done in the config.</p>
+    </div>
+  </div>
+
+  <div class="accent"></div>
+</div>
+
+<script>
+const COLORS = {
+  Triangle: '#22c55e',
+  Circle:   '#ef4444',
+  Cross:    '#3b82f6',
+  Square:   '#ec4899',
+};
+
+const GLYPHS = {
+  Triangle: c => `<polygon points="12,4 20,18 4,18" fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round"/>`,
+  Circle:   c => `<circle cx="12" cy="12" r="8" fill="none" stroke="${c}" stroke-width="2.5"/>`,
+  Cross:    c => `<path d="M7 7l10 10M17 7L7 17" fill="none" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/>`,
+  Square:   c => `<rect x="6" y="6" width="12" height="12" rx="2" fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round"/>`,
+};
+
+const DEVICE_ICONS = {
+  Monitor: c => `<rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="21" x2="16" y2="21" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  Smartphone: c => `<rect x="5" y="2" width="14" height="20" rx="2" ry="2" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="18" x2="12.01" y2="18" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  Laptop: c => `<rect x="4" y="3" width="16" height="12" rx="2" ry="2" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17h20v2H2z" fill="${c}"/>`,
+  Tablet: c => `<rect x="4" y="2" width="16" height="20" rx="2" ry="2" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="18" x2="12.01" y2="18" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  Tv: c => `<rect x="2" y="7" width="20" height="15" rx="2" ry="2" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17 2 12 7 7 2" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
+};
+
+const R = 22;
+const POS = {
+  Triangle: { cx: 100, cy:  50 },
+  Square:   { cx:  50, cy:  98 },
+  Circle:   { cx: 152, cy:  98 },
+  Cross:    { cx: 100, cy: 146 },
+};
+
+const LINE_E   = 222;
+const LABEL_X  = 229;
+const LABEL_RE = 313;   // leave room for X button (cx=328-r=13 → 315)
+
+const ELBOW_X = 118;
+const SQ_LABY = 124;
+
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// No manual close button as clicking anywhere dismisses the notification
+
+// ── Notification render ──────────────────────────────────────────────────────
+
+window.triggerGlobalNotification = function(data) {
+  if (typeof data === 'string') data = JSON.parse(data);
+
+  // Reset opacity for fade-in effect and exit reposition mode
+  document.body.classList.remove('fading-out');
+  document.getElementById('repo-overlay').classList.remove('active');
+
+  const active = {};
+  data.forEach(p => { active[p.button2] = p; });
+
+  const squareElbow = !!(active['Square'] && active['Circle']);
+
+  const clipDef = `<defs><clipPath id="lc">
+    <rect x="${LABEL_X}" y="0" width="${LABEL_RE - LABEL_X}" height="196"/>
+  </clipPath></defs>`;
+
+  let lines = '', circles = '', glyphs = '', labels = '';
+
+  ['Triangle', 'Circle', 'Cross', 'Square'].forEach(btn => {
+    const { cx, cy } = POS[btn];
+    const isActive = !!active[btn];
+    const color    = isActive ? COLORS[btn] : '#334155';
+    const dim      = isActive ? '' : ' opacity="0.18"';
+
+    if (isActive) {
+      if (btn === 'Square' && squareElbow) {
+        const x1 = cx + R + 3;
+        lines += `<path d="M ${x1},${cy} H ${ELBOW_X} V ${SQ_LABY} H ${LINE_E}"
+          stroke="#334155" stroke-width="1" fill="none"/>`;
+      } else {
+        const x1 = cx + R + 3;
+        lines += `<line x1="${x1}" y1="${cy}" x2="${LINE_E}" y2="${cy}"
+          stroke="#334155" stroke-width="1"/>`;
+      }
+    }
+
+    circles += `<circle cx="${cx}" cy="${cy}" r="${R}"
+      fill="#1e293b" stroke="#334155" stroke-width="2"${dim}/>`;
+
+    if (isActive && active[btn].useDeviceIcon && active[btn].iconType && DEVICE_ICONS[active[btn].iconType]) {
+      glyphs += `<svg x="${cx-10}" y="${cy-10}" width="20" height="20"
+        viewBox="0 0 24 24"${dim}>${DEVICE_ICONS[active[btn].iconType](color)}</svg>`;
+    } else {
+      glyphs += `<svg x="${cx-12}" y="${cy-12}" width="24" height="24"
+        viewBox="0 0 24 24"${dim}>${GLYPHS[btn](color)}</svg>`;
+    }
+
+    if (isActive) {
+      const name = esc(active[btn].deviceName || '');
+      const ly   = (btn === 'Square' && squareElbow) ? SQ_LABY : cy;
+      labels += `<text x="${LABEL_X}" y="${ly + 4}" text-anchor="start"
+        clip-path="url(#lc)" fill="#e2e8f0"
+        font-size="11" font-family="Segoe UI,system-ui,sans-serif">${name}</text>`;
+    }
+  });
+
+  document.getElementById('face').innerHTML =
+    clipDef + lines + circles + glyphs + labels;
+};
+
+// ── Reposition mode ──────────────────────────────────────────────────────────
+
+window.enterRepositionMode = function() {
+  document.getElementById('repo-overlay').classList.add('active');
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DualSense Link</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+        }
+    }
+    </script>
+    <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
+    <style>
+        /* Base styles */
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; }
+        
+        /* Draggable titlebar area for frameless window */
+        .pywebview-drag-region {
+            -webkit-app-region: drag;
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 40px;
+            z-index: 9999;
+            pointer-events: none; /* Let clicks pass to header except when dragging */
+        }
+    </style>
+</head>
+<body class="bg-transparent text-slate-300">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React from 'react';
+        import { createRoot } from 'react-dom/client';
+        
+        // We can just define the mount script here. The actual components are fetched from react.jsx.
+    </script>
+    
+    <!-- Load the main react component file -->
+    <script type="text/babel" data-type="module" src="./react.jsx"></script>
+    
+    <!-- Mount logic -->
+    <script type="text/babel" data-type="module">
+        import React from 'react';
+        import { createRoot } from 'react-dom/client';
+        import App, { NotificationView } from './react.jsx';
+
+        const mode = new URLSearchParams(window.location.search).get('mode') || 'config';
+        const root = createRoot(document.getElementById('root'));
+        
+        if (mode === 'notification') {
+            document.body.style.backgroundColor = 'transparent';
+            root.render(<NotificationView />);
+        } else {
+            document.body.className = "bg-slate-950 text-slate-300";
+            
+            // Add drag region for the config window so it can be moved around if frameless
+            const dragRegion = document.createElement('div');
+            dragRegion.className = 'pywebview-drag-region';
+            document.body.appendChild(dragRegion);
+
+            root.render(<App />);
+        }
+    </script>
+</body>
+</html>

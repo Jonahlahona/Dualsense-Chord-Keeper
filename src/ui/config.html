@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DualSense Chord Keeper - Config</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+        }
+    }
+    </script>
+    <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-300">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { Monitor, Smartphone, Laptop, Tablet, Tv, Gamepad2, Bell, Plus, Trash2 } from 'lucide-react';
+
+        const MoveIcon = () => (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="5 9 2 12 5 15"/>
+                <polyline points="9 5 12 2 15 5"/>
+                <polyline points="15 19 12 22 9 19"/>
+                <polyline points="19 9 22 12 19 15"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <line x1="12" y1="2" x2="12" y2="22"/>
+            </svg>
+        );
+
+        const PSBadge = () => (
+            <div className="flex items-center justify-center w-8 h-7 rounded-[8px] bg-slate-950 border border-slate-700 flex-shrink-0">
+                <span className="text-white text-[11px] font-black tracking-tighter">PS</span>
+            </div>
+        );
+
+        const ButtonSVG = ({ type }) => {
+            const cls = "w-[18px] h-[18px]";
+            switch (type) {
+                case 'Triangle': return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5"><polygon points="12,4 20,18 4,18" strokeLinejoin="round"/></svg>;
+                case 'Circle':   return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5"><circle cx="12" cy="12" r="8"/></svg>;
+                case 'Cross':    return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>;
+                case 'Square':   return <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="#ec4899" strokeWidth="2.5"><rect x="6" y="6" width="12" height="12" rx="2" strokeLinejoin="round"/></svg>;
+                default: return null;
+            }
+        };
+
+        const getIcon = (name, className = "") => {
+            const props = { size: 18, className };
+            switch (name) {
+                case 'Monitor':    return <Monitor    {...props} />;
+                case 'Smartphone': return <Smartphone {...props} />;
+                case 'Laptop':     return <Laptop     {...props} />;
+                case 'Tablet':     return <Tablet     {...props} />;
+                case 'Tv':         return <Tv         {...props} />;
+                default:           return <Monitor    {...props} />;
+            }
+        };
+
+        const PreviewCircle = ({ chord }) => (
+            <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0">
+                {chord.useDeviceIcon
+                    ? getIcon(chord.iconType, 'text-slate-300')
+                    : <ButtonSVG type={chord.button2} />
+                }
+            </div>
+        );
+
+        const NotificationPreview = ({ chords, isVisible }) => {
+            if (!isVisible || chords.length === 0) return null;
+            return (
+                <div className="fixed bottom-5 right-5 z-50 w-[280px] bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
+                    {chords.map(c => (
+                        <div key={c.id} className="flex items-center gap-3 px-4 py-2.5">
+                            <PreviewCircle chord={c} />
+                            <div className="flex-1 h-px bg-slate-700"></div>
+                            <span className="text-sm text-slate-200 truncate max-w-[100px] text-right">{c.deviceName}</span>
+                        </div>
+                    ))}
+                    <div className="h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600"></div>
+                </div>
+            );
+        };
+
+        const BUTTONS = ['Triangle', 'Circle', 'Cross', 'Square'];
+        const ICONS   = ['Monitor', 'Smartphone', 'Laptop', 'Tablet', 'Tv'];
+
+        const DEFAULT_PROFILE = {
+            id: 'default',
+            name: 'Default',
+            chords: [
+                { id: 1, button2: 'Triangle', deviceName: 'Gaming PC', iconType: 'Monitor', useDeviceIcon: false }
+            ]
+        };
+
+        function App() {
+            const [profileList, setProfileList]     = useState([DEFAULT_PROFILE]);
+            const [activeProfileId, setActiveProfileId] = useState('default');
+            const [showNotification, setShowNotification] = useState(false);
+            const [settings, setSettings] = useState({
+                triggerType: 'single',
+                triggerButton1: 'PS',
+                triggerButton2: 'Mute',
+                duration: 8,
+                notificationCorner: 'bottom-right',
+                controllerMappings: {},
+                controllerNames: {}
+            });
+            const [connectedControllers, setConnectedControllers] = useState([]);
+            const initialized = useRef(false);
+
+            const activeProfile = profileList.find(p => p.id === activeProfileId) ?? profileList[0];
+            const chords = activeProfile?.chords ?? [];
+
+            // Load saved config on mount
+            useEffect(() => {
+                const load = () => {
+                    if (!window.pywebview?.api?.load_config) return;
+                    window.pywebview.api.load_config().then(json => {
+                        if (json) {
+                            try {
+                                const data = JSON.parse(json);
+                                if (data.profileList?.length) setProfileList(data.profileList);
+                                if (data.activeProfileId)    setActiveProfileId(data.activeProfileId);
+                                if (data.settings)           setSettings(data.settings);
+                            } catch(e) { console.error('load_config parse error', e); }
+                        }
+                        initialized.current = true;
+                    });
+                };
+                window.addEventListener('pywebviewready', load);
+                load();
+                return () => window.removeEventListener('pywebviewready', load);
+            }, []);
+
+            useEffect(() => {
+                if (!showNotification) return;
+                const t = setTimeout(() => setShowNotification(false), settings.duration * 1000);
+                return () => clearTimeout(t);
+            }, [showNotification, settings.duration]);
+
+            // Poll for connected controllers
+            useEffect(() => {
+                const poll = () => {
+                    if (window.pywebview?.api?.get_connected_controllers) {
+                        window.pywebview.api.get_connected_controllers().then(devices => {
+                            setConnectedControllers(devices || []);
+                        }).catch(e => console.error("Error polling controllers:", e));
+                    }
+                };
+                const t = setInterval(poll, 2000);
+                return () => clearInterval(t);
+            }, []);
+
+            const save = (list, activeId, currentSettings = settings) => {
+                window.pywebview?.api?.save_config(JSON.stringify({ profileList: list, activeProfileId: activeId, settings: currentSettings }));
+            };
+
+            const triggerNotification = () => {
+                if (window.pywebview?.api) {
+                    window.pywebview.api.show_notification(JSON.stringify(chords));
+                } else {
+                    setShowNotification(false);
+                    setTimeout(() => setShowNotification(true), 50);
+                }
+            };
+
+            // ── Profile management ──────────────────────────────────────────
+            const updateSettings = (updates) => {
+                const newSettings = { ...settings, ...updates };
+                setSettings(newSettings);
+                save(profileList, activeProfileId, newSettings);
+            };
+
+            const selectProfile = (id) => {
+                setActiveProfileId(id);
+                save(profileList, id);
+            };
+
+            const addProfile = () => {
+                const np = { id: String(Date.now()), name: 'New Profile', chords: [] };
+                const nl = [...profileList, np];
+                setProfileList(nl);
+                setActiveProfileId(np.id);
+                save(nl, np.id);
+            };
+
+            const renameProfile = (id, name) => {
+                const nl = profileList.map(p => p.id === id ? { ...p, name } : p);
+                setProfileList(nl);
+                save(nl, activeProfileId);
+            };
+
+            const deleteProfile = (id) => {
+                if (profileList.length <= 1) return;
+                const nl = profileList.filter(p => p.id !== id);
+                const newActiveId = id === activeProfileId ? nl[0].id : activeProfileId;
+                setProfileList(nl);
+                setActiveProfileId(newActiveId);
+                save(nl, newActiveId);
+            };
+
+            // ── Chord management (within active profile) ────────────────────
+            const updateChords = (newChords) => {
+                const nl = profileList.map(p =>
+                    p.id === activeProfileId ? { ...p, chords: newChords } : p
+                );
+                setProfileList(nl);
+                save(nl, activeProfileId);
+            };
+
+            const updateChord = (id, field, value) =>
+                updateChords(chords.map(c => c.id === id ? { ...c, [field]: value } : c));
+
+            const addChord = () => updateChords([...chords, {
+                id: Date.now(), button2: 'Cross', deviceName: 'New Device',
+                iconType: 'Tablet', useDeviceIcon: false
+            }]);
+
+            const removeChord = (id) => updateChords(chords.filter(c => c.id !== id));
+
+            return (
+                <div className="min-h-screen bg-slate-950 text-slate-300 font-sans relative overflow-hidden">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-96 bg-blue-900/20 blur-[120px] rounded-full pointer-events-none" />
+
+                    <div className="max-w-3xl mx-auto p-6 relative z-10">
+                        {/* Header */}
+                        <header className="flex flex-col md:flex-row justify-between items-start md:items-center py-8 mb-8 border-b border-slate-800">
+                            <div>
+                                <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+                                    <Gamepad2 className="text-blue-500" size={32} />DualSense Chord Keeper
+                                    <span className="text-xs font-normal text-slate-600 bg-slate-800/50 px-2 py-0.5 rounded-full border border-slate-700/50 ml-2">v1.3.6</span>
+                                </h1>
+                                <p className="text-slate-400 mt-2">Configure your controller's Bluetooth switching shortcuts.</p>
+                            </div>
+                            <div className="mt-6 md:mt-0 flex items-center gap-3">
+                                <button
+                                    onClick={triggerNotification}
+                                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg font-medium transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+                                >
+                                    <Bell size={18} />Show Reminder
+                                </button>
+                            </div>
+                        </header>
+
+                        {/* Global Settings */}
+                        <div className="mb-8 bg-slate-900/50 border border-slate-800 rounded-xl p-5 shadow-sm">
+                            <h2 className="text-lg font-semibold text-slate-100 mb-4">Global Settings</h2>
+                            
+                            <div className="space-y-5">
+                                {/* Shortcut Type & Buttons */}
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <div className="flex-1">
+                                        <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Activation Shortcut</label>
+                                        <select
+                                            value={settings.triggerType}
+                                            onChange={e => updateSettings({ triggerType: e.target.value })}
+                                            className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-md px-3 py-2 focus:outline-none focus:border-blue-500"
+                                        >
+                                            <option value="single">Single Button</option>
+                                            <option value="chord">Button Combo (Chord)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div className="flex-1 flex items-end gap-2">
+                                        {settings.triggerType === 'chord' && (
+                                            <>
+                                                <select
+                                                    value={settings.triggerButton1}
+                                                    onChange={e => updateSettings({ triggerButton1: e.target.value })}
+                                                    className="flex-1 bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-md px-3 py-2 focus:outline-none focus:border-blue-500"
+                                                >
+                                                    {['PS', 'Create', 'Options', 'L1', 'R1', 'L2', 'R2'].map(b => <option key={b} value={b}>{b}</option>)}
+                                                </select>
+                                                <span className="text-slate-500 font-bold mb-2">+</span>
+                                            </>
+                                        )}
+                                        <select
+                                            value={settings.triggerButton2}
+                                            onChange={e => updateSettings({ triggerButton2: e.target.value })}
+                                            className="flex-1 bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-md px-3 py-2 focus:outline-none focus:border-blue-500"
+                                        >
+                                            {['Mute', 'Triangle', 'Circle', 'Cross', 'Square', 'PS', 'Create', 'Options', 'L1', 'R1', 'L2', 'R2', 'Touchpad'].map(b => <option key={b} value={b}>{b}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                {/* Duration Slider */}
+                                <div>
+                                    <div className="flex justify-between mb-1.5">
+                                        <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Notification Duration</label>
+                                        <span className="text-xs font-semibold text-blue-400">{settings.duration} seconds</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        min="2" max="15" step="1"
+                                        value={settings.duration}
+                                        onChange={e => updateSettings({ duration: parseInt(e.target.value) })}
+                                        className="w-full accent-blue-500"
+                                    />
+                                </div>
+                                
+                                {/* Notification Position */}
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Notification Position</label>
+                                    <div className="grid grid-cols-2 gap-1.5 w-32">
+                                        {[['top-left','TL'],['top-right','TR'],['bottom-left','BL'],['bottom-right','BR']].map(([corner, label]) => (
+                                            <button
+                                                key={corner}
+                                                onClick={() => {
+                                                    updateSettings({ notificationCorner: corner });
+                                                    window.pywebview?.api?.set_notification_corner(corner);
+                                                }}
+                                                className={`py-2 rounded text-xs font-semibold transition-all ${
+                                                    settings.notificationCorner === corner
+                                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                                                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-300 border border-slate-700'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Controller Assignments */}
+                        <div className="mb-8">
+                            <h2 className="text-lg font-semibold text-slate-100 mb-4">Controller Assignments</h2>
+                            {connectedControllers.length === 0 ? (
+                                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-8 text-center text-slate-400">
+                                    No DualSense controllers detected. Plug one in or connect via Bluetooth.
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {connectedControllers.map(device => {
+                                        const mac = device.mac;
+                                        const name = settings.controllerNames?.[mac] || "DualSense Controller";
+                                        const assignedProfile = settings.controllerMappings?.[mac] || activeProfileId;
+                                        
+                                        return (
+                                            <div key={mac} className="bg-slate-900/80 border border-slate-700 rounded-xl p-5 flex flex-col items-center shadow-lg transition-all hover:border-slate-600">
+                                                {/* Custom Name */}
+                                                <input 
+                                                    type="text" 
+                                                    value={name}
+                                                    onChange={e => {
+                                                        const names = { ...(settings.controllerNames || {}), [mac]: e.target.value };
+                                                        updateSettings({ controllerNames: names });
+                                                    }}
+                                                    className="w-full bg-transparent border-b border-blue-500/30 text-center text-slate-200 font-semibold focus:outline-none focus:border-cyan-400 mb-4 pb-1 transition-all duration-300 focus:shadow-[0_4px_12px_-4px_rgba(34,211,238,0.4)]"
+                                                    style={{ borderBottomWidth: '2px' }}
+                                                    placeholder="Controller Name"
+                                                />
+                                                
+                                                {/* Controller Icon */}
+                                                <div className="text-green-500 mb-4">
+                                                    <Gamepad2 size={64} strokeWidth={1.5} />
+                                                </div>
+                                                
+                                                {/* MAC Address (dim unless hovered) */}
+                                                <div className="text-xs text-slate-600 hover:text-slate-400 transition-colors mb-4 cursor-default font-mono">
+                                                    {mac}
+                                                </div>
+                                                
+                                                {/* Profile Dropdown */}
+                                                <select 
+                                                    value={assignedProfile}
+                                                    onChange={e => {
+                                                        const mappings = { ...(settings.controllerMappings || {}), [mac]: e.target.value };
+                                                        updateSettings({ controllerMappings: mappings });
+                                                    }}
+                                                    className="w-full bg-slate-800 border border-purple-500/50 text-slate-200 text-sm rounded-md px-3 py-2 focus:outline-none focus:border-purple-500 transition-colors"
+                                                >
+                                                    {profileList.map(p => (
+                                                        <option key={p.id} value={p.id}>{p.name || 'Unnamed Profile'}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Profiles */}
+                        <div className="mb-8">
+                            <div className="flex justify-between items-center mb-3">
+                                <h2 className="text-lg font-semibold text-slate-100">Profiles</h2>
+                                <button
+                                    onClick={addProfile}
+                                    className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 bg-blue-400/10 hover:bg-blue-400/20 px-3 py-1.5 rounded-md transition-colors"
+                                >
+                                    <Plus size={15} /> Add Profile
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {profileList.map(profile => (
+                                    <div
+                                        key={profile.id}
+                                        onClick={() => selectProfile(profile.id)}
+                                        className={`flex items-center gap-2 rounded-lg px-3 py-1.5 border cursor-pointer transition-colors ${
+                                            profile.id === activeProfileId
+                                                ? 'bg-blue-600/20 border-blue-500'
+                                                : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                                        }`}
+                                    >
+                                        <input
+                                            type="text"
+                                            value={profile.name}
+                                            onChange={e => renameProfile(profile.id, e.target.value)}
+                                            onClick={e => e.stopPropagation()}
+                                            className={`bg-transparent text-sm font-medium outline-none w-28 min-w-0 ${
+                                                profile.id === activeProfileId ? 'text-blue-300' : 'text-slate-400'
+                                            }`}
+                                        />
+                                        {profileList.length > 1 && (
+                                            <button
+                                                onClick={e => { e.stopPropagation(); deleteProfile(profile.id); }}
+                                                className="text-slate-600 hover:text-red-400 transition-colors flex-shrink-0"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Chord list for active profile */}
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-semibold text-slate-100">
+                                Chord Configurations
+                                <span className="ml-2 text-sm text-slate-500 font-normal">— {activeProfile.name}</span>
+                            </h2>
+                            <button
+                                onClick={addChord}
+                                className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 bg-blue-400/10 hover:bg-blue-400/20 px-3 py-1.5 rounded-md transition-colors"
+                            >
+                                <Plus size={15} /> Add Chord
+                            </button>
+                        </div>
+
+                        <div className="space-y-3">
+                            {chords.length === 0 && (
+                                <p className="text-slate-600 text-sm py-4 text-center">No chords yet — add one above.</p>
+                            )}
+                            {chords.map(chord => (
+                                <div key={chord.id} className="flex items-center gap-4 bg-slate-900 border border-slate-800 rounded-xl p-4">
+
+                                    <PreviewCircle chord={chord} />
+
+                                    <div className="w-5 h-px bg-slate-700 flex-shrink-0" />
+
+                                    <div className="flex-1 space-y-2 min-w-0">
+
+                                        {/* Row 1: device name + delete */}
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                value={chord.deviceName}
+                                                onChange={e => updateChord(chord.id, 'deviceName', e.target.value)}
+                                                placeholder="Device name"
+                                                className="flex-1 bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+                                            />
+                                            <button
+                                                onClick={() => removeChord(chord.id)}
+                                                className="p-1.5 text-slate-600 hover:text-red-400 transition-colors"
+                                            >
+                                                <Trash2 size={15} />
+                                            </button>
+                                        </div>
+
+                                        {/* Row 2: chord selector + display mode toggle + optional icon picker */}
+                                        <div className="flex items-center gap-2 flex-wrap">
+
+                                            <div className="flex items-center gap-1.5">
+                                                <PSBadge />
+                                                <span className="text-slate-600 text-xs font-bold">+</span>
+                                                <select
+                                                    value={chord.button2}
+                                                    onChange={e => updateChord(chord.id, 'button2', e.target.value)}
+                                                    className="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-md px-2 py-1 focus:outline-none focus:border-blue-500"
+                                                >
+                                                    {BUTTONS.map(b => <option key={b} value={b}>{b}</option>)}
+                                                </select>
+                                            </div>
+
+                                            <div className="flex ml-auto rounded-md overflow-hidden border border-slate-700 text-xs">
+                                                <button
+                                                    onClick={() => updateChord(chord.id, 'useDeviceIcon', false)}
+                                                    className={`px-2.5 py-1 transition-colors ${!chord.useDeviceIcon ? 'bg-slate-700 text-slate-200' : 'bg-slate-900 text-slate-500 hover:text-slate-400'}`}
+                                                >Button</button>
+                                                <button
+                                                    onClick={() => updateChord(chord.id, 'useDeviceIcon', true)}
+                                                    className={`px-2.5 py-1 transition-colors ${chord.useDeviceIcon ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-500 hover:text-slate-400'}`}
+                                                >Icon</button>
+                                            </div>
+
+                                            {chord.useDeviceIcon && (
+                                                <select
+                                                    value={chord.iconType}
+                                                    onChange={e => updateChord(chord.id, 'iconType', e.target.value)}
+                                                    className="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-md px-2 py-1 focus:outline-none focus:border-blue-500"
+                                                >
+                                                    {ICONS.map(t => <option key={t} value={t}>{t}</option>)}
+                                                </select>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <NotificationPreview chords={chords} isVisible={showNotification} />
+                </div>
+            );
+        }
+
+        createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
