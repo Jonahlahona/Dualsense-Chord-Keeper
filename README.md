@@ -13,13 +13,13 @@ DualSense Chord Keeper is a tool created out of frustration. I constantly would 
 ### Real-time Notifications
 With the press of a button you too can be reminded what the hell you bound your PC to!
 
-![Placeholder: Notification Overlay]
+<img src="DualsenseChordKeeper.png" alt="DualSense Chord Keeper Logo" width="200">
 
 ### Configuration
 Though a little odd, most of the features you need to customize the position and look. The horizontal and vertical sliders should be allow you to fix the position
 of the notification pretty decently.
 
-![Placeholder: Configuration Menu]
+<img src="DualsenseChordKeeper.png" alt="DualSense Chord Keeper Logo" width="200">
 
 ### System Tray Integration
 Runs quietly in the background. Access settings, toggle features, or exit the application directly from the Windows system tray.
