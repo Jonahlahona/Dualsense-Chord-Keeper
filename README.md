@@ -37,6 +37,10 @@ Runs quietly in the background. Access settings, toggle features, or exit the ap
 2. Extract the contents to a folder of your choice.
 3. Run `DualSenseChordKeeper.exe`.
 
+## Known Issues
+1. The notification shortcut doesn't work properly until you click on one of the corner options. I normally just click whatever is currently selected and it
+   updates properly from then on. 
+
 ## Portable Mode
 
 If you wish to run the program portably all you gotta do is put a new text file in the same folder as the .exe and run the program. A data folder should appear
