@@ -16,8 +16,8 @@ With the press of a button you too can be reminded what the hell you bound your 
 <img src="images/Notification_Window.png" alt="Notification">
 
 ### Configuration
-Though a little odd, most of the features you need to customize the position and look. The horizontal and vertical sliders should be allow you to fix the position
-of the notification pretty decently.
+Though a little odd, most of the features you need to customize the position and look. The horizontal and vertical sliders should allow you to adjust the position
+of the notification to better suit your preference.
 
 <img src="images/Config_Window.png" alt="Config" width="500">
 
