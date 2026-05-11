@@ -38,7 +38,7 @@ Runs quietly in the background. Access settings, toggle features, or exit the ap
 3. Run `DualSenseChordKeeper.exe`.
 
 ## Known Issues
-1. The notification shortcut doesn't work properly until you click on one of the corner options. I normally just click whatever is currently selected and it
+1. The notification shortcut doesn't work properly after the initial launch for a session. it's not until you click on one of the corner options that the notification pops up and after that it should work, even if the controller disconnects. 
    updates properly from then on. 
 
 ## Portable Mode
