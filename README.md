@@ -19,7 +19,7 @@ With the press of a button you too can be reminded what the hell you bound your 
 Though a little odd, most of the features you need to customize the position and look. The horizontal and vertical sliders should be allow you to fix the position
 of the notification pretty decently.
 
-<img src="images/Config_Window.png" alt="Config">
+<img src="images/Config_Window.png" alt="Config" width="500">
 
 ### System Tray Integration
 Runs quietly in the background. Access settings, toggle features, or exit the application directly from the Windows system tray.
@@ -48,6 +48,10 @@ with your profile
 1. Open the configuration interface from the system tray icon.
 2. Define your desired chords by selecting the primary buttons and the resulting action.
 3. Save your settings and start using your controller to trigger actions.
+
+## Backing up files
+
+If you run the program as-is the profile.json file can be found in the "%APPDATA%\DualsenseChordKeeper".
 
 ---
 
