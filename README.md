@@ -4,24 +4,20 @@
 
 # DualSense Chord Keeper
 
-DualSense Chord Keeper is a powerful utility designed to enhance your DualSense controller experience on Windows. By utilizing "chords"—combinations of button presses—you can trigger custom actions, macros, and system commands, all while receiving real-time visual feedback.
+DualSense Chord Keeper is a tool created out of frustration. I constantly would forget what device I had connected to what button and I decided to try to do something about it. This is AI code, all of it. I wanted to also use this as a way to learn and better understand how to code, so in the future I'd like to do a whole rewrite with properly checked over code. Use at your own risk, I haven't had any issues but who knows.
 
 ---
 
 ## Features
 
-### Custom Chord Mapping
-Map complex button combinations to specific keyboard inputs or system actions. Whether you need quick access to media controls or complex macros for productivity, Chord Keeper handles it seamlessly.
-
-![Placeholder: Chord Mapping Interface]
-
 ### Real-time Notifications
-Stay informed with a non-intrusive overlay that displays active chords and triggered actions. The notification system is designed to be sleek and transparent, ensuring it doesn't distract from your primary tasks.
+With the press of a button you too can be reminded what the hell you bound your PC to!
 
 ![Placeholder: Notification Overlay]
 
 ### Web-based Configuration
-Customize your experience through an intuitive and modern interface. No need to edit cryptic configuration files manually; everything is accessible via a clean, responsive UI.
+Though a little odd, most of the features you need to customize the position and look. The horizontal and vertical sliders should be allow you to fix the position
+of the notification pretty decently.
 
 ![Placeholder: Configuration Menu]
 
