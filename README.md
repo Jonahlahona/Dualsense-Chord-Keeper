@@ -37,17 +37,17 @@ Runs quietly in the background. Access settings, toggle features, or exit the ap
 2. Extract the contents to a folder of your choice.
 3. Run `DualSenseChordKeeper.exe`.
 
+## Portable Mode
+
+If you wish to run the program portably all you gotta do is put a new text file in the same folder as the .exe and run the program. A data folder should appear
+with your profile
+
 ---
 
 ## Usage
 1. Open the configuration interface from the system tray icon.
 2. Define your desired chords by selecting the primary buttons and the resulting action.
 3. Save your settings and start using your controller to trigger actions.
-
-## Portable Mode
-
-If you wish to run the program portably all you gotta do is put a new text file in the same folder as the .exe and run the program. A data folder should appear
-with your profile
 
 ---
 
