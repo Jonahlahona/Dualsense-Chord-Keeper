@@ -77,6 +77,3 @@ If you wish to build from source:
    ```
 
 ---
-
-## License
-Distributed under the MIT License. See `LICENSE` for more information.
