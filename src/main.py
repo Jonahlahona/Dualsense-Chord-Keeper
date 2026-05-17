@@ -310,7 +310,7 @@ def _is_startup_enabled():
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_READ)
         value, _ = winreg.QueryValueEx(key, "DualSenseChordKeeper")
         winreg.CloseKey(key)
-        return value == _get_exe_path()
+        return _get_exe_path() in value
     except OSError:
         return False
 
@@ -318,7 +318,7 @@ def _set_startup_enabled(enable):
     try:
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE)
         if enable:
-            winreg.SetValueEx(key, "DualSenseChordKeeper", 0, winreg.REG_SZ, _get_exe_path())
+            winreg.SetValueEx(key, "DualSenseChordKeeper", 0, winreg.REG_SZ, f'"{_get_exe_path()}" --tray')
         else:
             try:
                 winreg.DeleteValue(key, "DualSenseChordKeeper")
@@ -518,9 +518,11 @@ class Api:
 
 api = Api()
 
+start_hidden = '--tray' in sys.argv
 config_window = webview.create_window(
     'DualSense Chord Keeper - Config', config_html,
     width=1024, height=768, js_api=api,
+    hidden=start_hidden,
 )
 overlay_window = webview.create_window(
     'DualSense Chord Keeper - Overlay', notification_html,
