@@ -4,7 +4,7 @@
 
 # DualSense Chord Keeper
 
-DualSense Chord Keeper is a tool created out of frustration. I constantly would forget what device I had connected to what button and I decided to try to do something about it. This is AI code, all of it. I wanted to also use this as a way to learn and better understand how to code, so in the future I'd like to do a whole rewrite with properly checked over code. Use at your own risk, I haven't had any issues but who knows.
+DualSense Chord Keeper is a tool created out of frustration. I constantly would forget what device I had paired to what button and I decided to try to do something about it. This is AI code, all of it. I wanted to also use this as a way to learn and better understand how to code, so in the future I'd like to do a whole rewrite with properly checked over code. Use at your own risk, I haven't had any issues but who knows.
 
 ---
 
